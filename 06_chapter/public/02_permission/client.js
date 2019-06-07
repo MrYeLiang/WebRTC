@@ -68,7 +68,7 @@ function gotDevices(deviceInfos){
 
 function start(){
 
-	if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+	if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
 		console.log('getUserMedia is not supported');
 		return;
 	}else{
@@ -87,7 +87,7 @@ function start(){
 			audio : false
 		}
 
-		navigator.mediaDevices.getUserMedia(constraints)
+		navigator.mediaDevices.getDisplayMedia(constraints)
 		.then(gotMediaStream)
 		.then(gotDevices)
 		.catch(handleError)
