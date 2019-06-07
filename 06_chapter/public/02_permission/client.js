@@ -13,14 +13,24 @@ var picture = document.querySelector('canvas#picture');
 picture.width = 320;
 picture.height = 240;
 
+var divConstraints = document.querySelector('div#constraints');
+
 //后去到video标签
-//var videoplay = document.querySelector('video#player');
+var videoplay = document.querySelector('video#player');
 var audioplay = document.querySelector('audio#audioplayer');
 
 //将流赋值给video标签
 function gotMediaStream(stream){
-	//videoplay.srcObject = stream;
-	audioplay.srcObject = stream;
+	videoplay.srcObject = stream;
+	//audioplay.srcObject = stream;
+
+	//视频的所有轨
+	var videoTrack = stream.getVideoTracks()[0];
+	var videoConstraints = videoTrack.getSettings();
+
+
+	divConstraints.textContent = JSON.stringify(videoConstraints, null, 2);
+
 	return navigator.mediaDevices.enumerateDevices();
 }
 
@@ -55,18 +65,17 @@ function start(){
 	}else{
 		var deviceId = videoSource.value;
 		var constraints = {
-			/* video : {
+			 video : {
 				//修改视频宽高
-				width : 320,
-				height : 240,
+				width : 640,
+				height : 480,
 
 				//设置帧率
-				frameRate : 30,
+				frameRate : 15,
 				facingMode : 'enviroment',
 				deviceId : deviceId ? deviceId : undefined
-			}, */
-			video : false,
-			audio : true
+			}, 
+			audio : false
 		}
 
 		navigator.mediaDevices.getUserMedia(constraints)
