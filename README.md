@@ -139,6 +139,69 @@ client.js:17 audiooutput: label = : id = a8c76b962c5b479073378dbde69fcf8edc05f12
 navigator.mediaDevices.getUserMedia
 ```
 
+## (三) 音视频数据采集及处理
+
+### html代码，用于显示视频
+```
+<html>
+	<head>
+		<title>WebRTC capture video and audio</title>
+	</head>
+	<body>
+		<video autoplay playsinline id = "player"></video>
+		<script src = "./client.js"></script>
+	</body>
+</html>
+```
+### js代码,用于获取视频流
+```
+'use strict'
+
+//后去到video标签
+var videoplay = document.querySelector('video#player');
+
+//将流赋值给video标签
+function gotMediaStream(stream){
+	videoplay.srcObject = stream;
+}
+
+//打印错误日志
+function handleError(err){
+	console.log('getUserMedia error : ', err);
+}
+
+if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+	console.log('getUserMedia is not supported');
+}else{
+	var constraints = {
+		video : true,
+		audio : true
+	}
+
+	navigator.mediaDevices.getUserMedia(constraints)
+	.then(gotMediaStream)
+	.catch(handleError)
+}
+```
+通过以上js和html代码，就能将采集出摄像头的数据和音频数据。
+但是以上方法是有浏览器的兼容性的问题。所以需要在js里面加入以下开源库
+
+```
+https://webrtc.github.io/adapter/adapter-latest.js
+```
+完整html代码
+```
+<html>
+	<head>
+		<title>WebRTC capture video and audio</title>
+	</head>
+	<body>
+		<video autoplay playsinline id = "player"></video>
+		<script src = "https://webrtc.github.io/adapter/adapter-latest.js"></script>
+		<script src = "./client.js"></script>
+	</body>
+</html>
+```
 
 
 
