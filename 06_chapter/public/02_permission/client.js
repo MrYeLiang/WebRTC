@@ -6,6 +6,13 @@ var videoSource = document.querySelector('select#videoSource');
 
 //视频效果标签
 var filtersSelect = document.querySelector('select#filter');
+
+//用于拍照的btn和显示截取快照的图片
+var snapshort = document.querySelector('button#snapshort');
+var picture = document.querySelector('canvas#picture');
+picture.width = 320;
+picture.height = 240;
+
 //后去到video标签
 var videoplay = document.querySelector('video#player');
 
@@ -83,4 +90,9 @@ filtersSelect.onchange = function(){
 	videoplay.className = filtersSelect.value;
 }
 
+//截取快照事件
+snapshort.onclick = function(){
+	picture.className = filtersSelect.value;
+	picture.getContext('2d').drawImage(videoplay, 0,0, picture.width,picture.height);
+}
 

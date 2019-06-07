@@ -2,6 +2,7 @@
 	<head>
 		<title>WebRTC capture video and audio</title>
 		<style>
+		//==============   切换视频效果   ==================
 			.none{
 				-webkit-filter:none;
 			}
@@ -21,6 +22,7 @@
 		</style>
 	</head>
 	<body>
+		==============   用于显示和选择设备   ==================
 		<div>
 			 <label>audio input device:</label>
              <select id = "audioSource"></select>
@@ -33,6 +35,7 @@
 			<label>video input device:</label>
 			<select id = "videoSource"></select>
 		</div>
+		==============   视频效果选择   ==================
 		<div>
 			<label>Filter:</label>
 			<select id = "filter">
@@ -43,7 +46,17 @@
 				<option value = "sepia">褐色</option>
 			</select>
 		</div>
+		==============   显示视频图像   ==================
 		<video autoplay playsinline id = "player"></video>
+
+		<div>
+			<button id = "snapshort">截取快照</button>
+		</div>
+		<div>
+			<canvas id = "picture">截取快照</canvas>
+		</div>
+
+		==============   js   ==================
 		<script src = "./client.js"></script>
 		<script src = "https://webrtc.github.io/adapter/adapter-latest.js"></script>
 	</body>
