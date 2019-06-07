@@ -4,6 +4,8 @@ var audioSource = document.querySelector('select#audioSource');
 var audioOutput = document.querySelector('select#audioOutput');
 var videoSource = document.querySelector('select#videoSource');
 
+//视频效果标签
+var filtersSelect = document.querySelector('select#filter');
 //后去到video标签
 var videoplay = document.querySelector('video#player');
 
@@ -75,5 +77,10 @@ start();
 
 //每次选择时，都会触发start函数
 videoSource.onchange = start
+
+filtersSelect.onchange = function(){
+	//获取css名字
+	videoplay.className = filtersSelect.value;
+}
 
 
