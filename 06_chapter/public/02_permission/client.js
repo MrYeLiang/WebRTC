@@ -37,23 +37,43 @@ function gotDevices(deviceInfos){
 	})
 }
 
-if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-	console.log('getUserMedia is not supported');
-}else{
-	var constraints = {
-		video : {
-			//修改视频宽高
-			width : 320,
-			height : 240,
+function start(){
 
-			//设置帧率
-			frameRate : 30
-		},
-		audio : true
+	if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+		console.log('getUserMedia is not supported');
+		return;
+	}else{
+		var deviceId = videoSource.value;
+		var constraints = {
+			video : {
+				//修改视频宽高
+				width : 320,
+				height : 240,
+
+				//设置帧率
+				frameRate : 30,
+				facingMode : 'enviroment',
+				deviceId : deviceId ? deviceId : undefined
+			},
+			audio : {
+				//设置降噪
+				noiseSuppression : true,
+				echoCancellation : true
+			}
+		}
+
+		navigator.mediaDevices.getUserMedia(constraints)
+		.then(gotMediaStream)
+		.then(gotDevices)
+		.catch(handleError)
 	}
 
-	navigator.mediaDevices.getUserMedia(constraints)
-	.then(gotMediaStream)
-	.then(gotDevices)
-	.catch(handleError)
-}
+} 
+
+start();
+
+
+//每次选择时，都会触发start函数
+videoSource.onchange = start
+
+
