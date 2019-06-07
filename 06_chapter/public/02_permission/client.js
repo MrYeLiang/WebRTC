@@ -14,12 +14,13 @@ picture.width = 320;
 picture.height = 240;
 
 //后去到video标签
-var videoplay = document.querySelector('video#player');
+//var videoplay = document.querySelector('video#player');
+var audioplay = document.querySelector('audio#audioplayer');
 
 //将流赋值给video标签
 function gotMediaStream(stream){
-	videoplay.srcObject = stream;
-
+	//videoplay.srcObject = stream;
+	audioplay.srcObject = stream;
 	return navigator.mediaDevices.enumerateDevices();
 }
 
@@ -54,7 +55,7 @@ function start(){
 	}else{
 		var deviceId = videoSource.value;
 		var constraints = {
-			video : {
+			/* video : {
 				//修改视频宽高
 				width : 320,
 				height : 240,
@@ -63,12 +64,9 @@ function start(){
 				frameRate : 30,
 				facingMode : 'enviroment',
 				deviceId : deviceId ? deviceId : undefined
-			},
-			audio : {
-				//设置降噪
-				noiseSuppression : true,
-				echoCancellation : true
-			}
+			}, */
+			video : false,
+			audio : true
 		}
 
 		navigator.mediaDevices.getUserMedia(constraints)
