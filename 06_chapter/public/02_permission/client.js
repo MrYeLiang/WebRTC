@@ -41,7 +41,14 @@ if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
 	console.log('getUserMedia is not supported');
 }else{
 	var constraints = {
-		video : true,
+		video : {
+			//修改视频宽高
+			width : 320,
+			height : 240,
+
+			//设置帧率
+			frameRate : 30
+		},
 		audio : true
 	}
 
