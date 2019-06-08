@@ -82,7 +82,7 @@ function start(){
 				//设置帧率
 				frameRate : 15,
 				facingMode : 'enviroment',
-				deviceId : deviceId ? deviceId : undefined
+				deviceId : deviceId ? {exact:deviceId} : undefined
 			}, 
 			audio : false
 		}
