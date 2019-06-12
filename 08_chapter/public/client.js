@@ -1,180 +1,85 @@
 'use strict'
 
-var audioSource = document.querySelector('select#audioSource');
-var audioOutput = document.querySelector('select#audioOutput');
-var videoSource = document.querySelector('select#videoSource');
+var userName = document.querySelector('input#username');
+var inputRoom = document.querySelector('input#room');
+var btnConnect = document.querySelector('button#connect');
+var btnLeave = document.querySelector('button#leave');
+var outputArea = document.querySelector('textarea#output');
+var inputArea = document.querySelector('textarea#input');
+var btnSend = document.querySelector('button#send');
 
-//视频效果标签
-var filtersSelect = document.querySelector('select#filter');
+var socket;
+var room;
 
-//用于拍照的btn和显示截取快照的图片
-var snapshort = document.querySelector('button#snapshort');
-var picture = document.querySelector('canvas#picture');
-picture.width = 320;
-picture.height = 240;
+btnConnect.onclick = () =>{
+	//connect
+	socket = io.connect();
 
-//用于显示视频流参数信息
-var divConstraints = document.querySelector('div#constraints');
+	//receive message
+	socket.on('joined', (room,id) =>{
+		btnConnect.disabled = true;
+		btnLeave.disabled = false;
+		inputArea.disabled = false;
+		btnSend.disabled = false;
+	});
 
-//获取到video标签
-var videoplay = document.querySelector('video#player');
-//var audioplay = document.querySelector('audio#audioplayer');
+	socket.on('leaved', (room, id)=>{
+		btnConnect.disabled = false;
+		btnLeave.disabled = true;
+	    inputArea.disabled = true;
+		btnSend.disabled = true;
 
-//录制相关
-var recvideo = document.querySelector('video#recplayer');
-var btnRecord = document.querySelector('button#record');
-var btnPlay = document.querySelector('button#recplay');
-var btnDownload = document.querySelector('button#download');
+		socket.disconnect();
+	});
 
-var buffer;
-var mediaRecorder;
+	socket.on('message',(room, id, data) =>{
+		outputArea.scrollTop = outputArea.scrollHeight;//窗口总是显示最后的内容
+		outputArea.value = outputArea.value + data + '\r';
+	});
 
-//将流赋值给video标签
-function gotMediaStream(stream){
-	videoplay.srcObject = stream;
-	//audioplay.srcObject = stream;
+	socket.on('disconnect', (socket)=>{
+		btnConnect.disabled = false;
+		btnLeave.disabled = true;
+	    inputArea.disabled = true;
+	    btnSend.disabled = true;
 
-	//视频的所有轨
-	var videoTrack = stream.getVideoTracks()[0];
-	var videoConstraints = videoTrack.getSettings();
+	});
 
-	divConstraints.textContent = JSON.stringify(videoConstraints, null, 2);
-	window.stream = stream;
-	return navigator.mediaDevices.enumerateDevices();
+	room = inputRoom.value;
+	socket.emit('join', room);
 }
 
-//打印错误日志
-function handleError(err){
-	console.log('getUserMedia error : ', err);
+btnSend.onclick = ()=>{
+	var data = inputArea.value;
+	data = userName.value + ':' + data;
+	socket.emit('message', room, data);
+	inputArea.value = '';
 }
 
-//设备信息数组
-function gotDevices(deviceInfos){
-
-	deviceInfos.forEach(function(deviceinfo){
-		var option = document.createElement('option');
-		option.text = deviceinfo.label;
-		option.value = deviceinfo.deviceId;
-
-		if(deviceinfo.kind == 'audioinput'){
-				audioSource.appendChild(option);
-		}else if(deviceinfo.kind === 'audiooutput'){
-				audioOutput.appendChild(option);
-		}else if(deviceinfo.kind === 'videoinput'){
-				videoSource.appendChild(option);
-		}
-	})
+btnLeave.onclick = ()=>{
+	room = inputRoom.value;
+	socket.emit('leave', room);
 }
 
-function start(){
-
-	if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
-		console.log('getUserMedia is not supported');
-		return;
-	}else{
-		var deviceId = videoSource.value;
-		var constraints = {
-			 video : {
-				//修改视频宽高
-				width : 320,
-				height : 240,
-
-				//设置帧率
-				frameRate : 15,
-				facingMode : 'enviroment',
-				deviceId : deviceId ? {exact:deviceId} : undefined
-			}, 
-			audio : false
-		}
-
-		navigator.mediaDevices.getDisplayMedia(constraints)
-		.then(gotMediaStream)
-		.then(gotDevices)
-		.catch(handleError)
-	}
-
-} 
-
-start();
-
-
-//每次选择时，都会触发start函数
-videoSource.onchange = start
-
-filtersSelect.onchange = function(){
-	//获取css名字
-	videoplay.className = filtersSelect.value;
-}
-
-//截取快照事件
-snapshort.onclick = function(){
-	picture.className = filtersSelect.value;
-	picture.getContext('2d').drawImage(videoplay, 0,0, picture.width,picture.height);
-}
-
-function handleDataAvailable(e){
-	if(e && e.data && e.data.size > 0){
-		buffer.push(e.data);
+inputArea.onkeypress = (event)=>{
+	if(event.keyCode == 13){
+		var data = inputArea.value;
+		data = userName.value + ":" + data;
+		socket.emit('message', room, data);
+		inputArea.value = '';
+		event.preventDefault();//阻止默认行文
 	}
 }
 
-function startRecord(){
-	buffer = [];
-	var options = {
-		mimeType : 'video/webm; codecs = vp8'
-	}
 
-	if(!MediaRecorder.isTypeSupported(options.mimeType)){
-			console.error('${options.mimeType} is not supported!');
-			return;
-	}
 
-	try{
-		mediaRecorder = new MediaRecorder(window.stream, options);
-	}catch(e){
-		console.error('Failed to create MediaRecorder:',e);
-		return
-	}
-	mediaRecorder.ondataavailable = handleDataAvailable;
-	mediaRecorder.start(10);
-}
 
-function stopRecord(){
-	mediaRecorder.stop();
-}
 
-//录制按钮监听
-btnRecord.onclick = ()=>{
-	if(btnRecord.textContent === 'Start Record'){
-		startRecord();
-		btnRecord.textContent = 'Stop Record';
-		btnPlay.disabled = true;
-		btnDownload.disabled = true;
-	}else{
-		stopRecord();
-		btnRecord.textContent = 'Start Record';
-		btnPlay.disabled = false;
-		btnDownload.disabled = false;
-	}
-}
 
-//播放按钮监听
-btnPlay.onclick = ()=>{
-	var blob = new Blob(buffer, {type : 'video/webm'});
-	recvideo.src = window.URL.createObjectURL(blob);
-	recvideo.srcObject = null;
-	recvideo.controls = true;
-	recvideo.play();
-}
 
-//下载按钮监听
-btnDownload.onclick = ()=>{
-	var blob = new Blob(buffer, {type: 'video/webm'});
-	var url = window.URL.createObjectURL(blob);
-	var a = document.createElement('a');
 
-	a.href = url;
-	a.style.display = 'none';
-	a.download = 'aaa.webm';
-	a.click();
-}
+
+
+
+
+
