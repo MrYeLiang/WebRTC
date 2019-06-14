@@ -1,0 +1,31 @@
+<html>
+	<head>
+		<title>RTCPeerConnection</title>
+		<link rel="stylesheet" href="css/main.css"/>
+	</head>
+	<body>
+		<div>
+			<div>
+				<button id="start">start</button>
+				<button id="call">call</button>
+				<button id="hangup">hang up</button>
+			</div>	
+			<div id="preview">
+				<div>
+					<h2>Local:</h2>
+					<video id="localVideo" autoplay playsinline></video>
+					<h2>Local SDP:</h2>
+					<textarea id="offer"></textarea>
+				</div>
+				<div>
+					<h2>Remote:</h2>
+					<video id="remoteVideo" autoplay playsinline></video>
+					<h2>Remote SDP:</h2>
+					<textarea id="answer"></textarea>
+				</div>
+			</div>	
+		</div>
+		<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+		<script src="./main.js"></script>
+	</body>
+</html>
