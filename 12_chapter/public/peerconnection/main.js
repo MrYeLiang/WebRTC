@@ -306,6 +306,13 @@ function handleError(){
 	console.error("Failed to get Media Stream!", err);
 }
 
+function getDeskStream(stream){
+	localStream = stream;
+	
+	localVideo.srcObject = localStream;
+	conn();
+}
+
 function shareDesk(){
 	if(IsPC()){
 		navigator.mediaDevices.getDisplayMedia({video:true})
@@ -328,7 +335,7 @@ function start(){
 
 		if(shareDeskBox.checked && shareDesk()){
 			constraints = {
-				video : false,
+				video : true,
 				audio : {
 					echoCancellation : true,
 					noiseSuppression : true,
