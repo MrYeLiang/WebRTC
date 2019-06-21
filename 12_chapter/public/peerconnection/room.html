@@ -14,6 +14,18 @@
 			<label for="shareDesk"></label>
 		</div>
 
+		<div>
+			<label>BandWidth:</label>
+			<select id="bandwidth" disabled>
+				<option value="unlimited" selected>unlimited</option>
+				<option value="2000">2000</option>
+				<option value="1000">1000</option>
+				<option value="500">500</option>
+				<option value="250">250</option>
+				<option value="125">125</option>
+			</select>
+			kbps
+		</div>	
 
 		<div id="preview">
 			<div>
@@ -29,8 +41,18 @@
 				<textarea id="answer"></textarea>
 			</div>
 		</div>
+
+		<div class="graph-container" id="bitrateGraph">
+				<div>BitRate</div>
+				<canvas id="bitrateCanvas"></canvas>
+		</div>	
+		<div class="graph-container" id="packetGraph">
+			 <div>Packets send per second</div>
+			 <canvas id="packetCanvas"></canvas>
+		</div>
 	</div>
 
+	<script src="third_party/graph.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
 	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 	<script src="main.js"></script>

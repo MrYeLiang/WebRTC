@@ -6,10 +6,20 @@ var remoteVideo = document.querySelector('video#remotevideo');
 var btnConn = document.querySelector('button#connserver');
 var btnLeave = document.querySelector('button#leave');
 
+var optBw = document.querySelector('select#bandwidth');
+
 var offer = document.querySelector('textarea#offer')
 var answer = document.querySelector('textarea#answer');
 
 var shareDeskBox = document.querySelector('input#shareDesk');
+
+var bitrateGraph;
+var bitrateSeries;
+
+var packetGraph;
+var packetSeries;
+
+var lastResult;
 
 var pcConfig = {
 	'iceServers':[{
@@ -140,6 +150,7 @@ function createAnswerSuc(desc){
 	pc.setLocalDescription(desc);
 
 	answer.value = desc.sdp;
+	optBw.disabled = false;
 
 	sendMessage(roomid, desc);
 }
@@ -223,6 +234,7 @@ function conn(){
 
 		btnConn.disabled = false;
 		btnLeave.disabled = true;
+		optBw.disabled = true;
 	});
 
 	socket.on('bye', (room,id)=>{
@@ -244,6 +256,10 @@ function conn(){
 		}
 
 		state = 'leaved';
+
+		btnConn.disabled = false;
+		btnLeave.leaved = true;
+		optBw.disabled = true;
 	});
 
 	socket.on('message', (roomid, data) => {
@@ -266,6 +282,7 @@ function conn(){
 		}else if(data.hasOwnProperty('type') && data.type === 'answer'){
 			console.log('receive answer', roomid, data);
 
+			optBw.disabled = false;
 			answer.value = data.sdp;
 			pc.setRemoteDescription(new RTCSessionDescription(data));
 		}else if(data.hasOwnProperty('type') && data.type === 'candidate'){
@@ -299,10 +316,20 @@ function getMediaStream(stream){
 
 	//2 ===============显示本地视频===============
 	localVideo.srcObject = localStream;
+
+	//这个函数的调用时机特别重要 一定要在getMediaStream之后再调用，否则会出现绑定失败的情况
 	conn();
+
+	bitrateSeries = new TimelineDataSeries();
+	bitrateGraph = new TimelineGraphView('bitrateGraph', 'bitrateCanvas');
+	bitrateGraph.updateEndDate();
+
+	packetSeries = new TimelineDataSeries();
+	packetGraph = new TimelineGraphView('bitrateGraph', 'bitrateCanvas');
+	packetGraph.updateEndDate();
 }
 
-function handleError(){
+function handleError(err){
 	console.error("Failed to get Media Stream!", err);
 }
 
@@ -365,6 +392,11 @@ function leave(){
 	}
 
 	hangup();
+	closeLocalMedia();
+
+	btnConn.disabled = false;
+	btnLeave.disabled = true;
+	optBw.disabled = true;
 }
 
 function hangup(){
@@ -382,8 +414,88 @@ function connSignalServer(){
 	return true;
 }
 
+//设置带宽
+function change_bw(){
+	optBw.disabled = true;
+	var bw = optBw.options[optBw.selectIndex].value;
+
+	var vsender = null;
+	var senders = pc.getSenders();
+
+	senders.forEach(senders => {
+		if(sender && sender.track.kind === 'video'){
+			vsender = sender;
+		}
+	});
+
+	var parameters = vsender.getParameters();
+	if(!parameters.encodings){
+			return;
+	}
+
+	if(bw == 'unlimited'){
+		return;
+	}
+
+	parameters.encodings[0].maxBitrate = bw * 1000;
+	vsender.setParameters(parameters)
+		.then(()=>{
+			optBw.disabled = false;
+			console.log('Successed to set parameters!');
+		})
+		.catch(err =>{
+			console.log(err);
+		})
+}
+
+window.setInterval(() => {
+	if(!pc){
+		return;
+	}
+
+	const sender = pc.getSenders()[0];
+	if(!sender){
+		return;
+	}
+
+	sender.getStats().then(res =>{
+		res.forEach(report => {
+			let bytes;
+			let packets;
+			if(report.type === 'outbound-rtp'){
+					if(report.isRemote){
+						return;
+					}
+
+					const now = report.timestamp;
+					bytes = report.packetsSent;
+					packets = report.packetsSent;
+					if(lastResult && lastResult.has(report.id)){
+						//calculate bitrate
+						const bitrate = 8 * (bytes - lastResult.get(report.id).bytesSent)/
+						(now - lastResult.get(report.id).timestamp);
+
+						//append to chart 
+						bitrateSeries.addPoint(now, bitrate);
+						bitrateGraph.setDataSeries([bitrateSeries]);
+						bitrateGraph.updateEndDate();
+
+						//caculate number of packets and apend to chart
+						packetSeries.addPoint(now, packets - lastResult.get(report.id).packetsSent);
+						packetGraph.setDataSeries([packetSeries]);
+						packetGraph.updateEndDate();
+
+					}
+			}
+		});
+		lastResult = res;
+	});
+
+}, 1000);
+
+
 
 btnConn.onclick = connSignalServer;
 btnLeave.onclick = leave;
-
+optBw.onchange = change_bw;
 
